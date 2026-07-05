@@ -1,4 +1,4 @@
-# @sema/ui
+# @sema-lang/ui
 
 Lit-based Web Components for the Sema design system. Framework-agnostic, consumes DESIGN.md tokens via CSS custom properties.
 
@@ -18,8 +18,8 @@ Lit-based Web Components for the Sema design system. Framework-agnostic, consume
 ### npm consumer (VitePress, Vite, any bundler)
 
 ```ts
-import '@sema/ui/tokens.css'
-import '@sema/ui'
+import '@sema-lang/ui/tokens.css'
+import '@sema-lang/ui'
 ```
 
 When imported this way, lit stays external — your bundler deduplicates it.
@@ -71,8 +71,8 @@ Copy both files to `playground/`, add `<link>` + `<script type="module">` to `in
 
 ### Website (VitePress)
 ```ts
-import '@sema/ui/tokens.css'
-import '@sema/ui'
+import '@sema-lang/ui/tokens.css'
+import '@sema-lang/ui'
 ```
 
 Vite deduplicates lit automatically.
@@ -98,3 +98,14 @@ All best practices from [Lit's publishing guide](https://lit.dev/docs/tools/publ
 - Self-defining elements, exported classes
 - TypeScript declarations generated (`declaration: true`)
 - No bundled lit for npm consumers (use `./standalone` for bundled)
+
+## Links
+
+- **Website** — [sema-lang.com](https://sema-lang.com)
+- **Playground** — [sema.run](https://sema.run)
+- **Documentation** — [sema-lang.com/docs](https://sema-lang.com/docs/)
+- **Repository** — [sema-lisp/ui](https://github.com/sema-lisp/ui)
+
+## License
+
+[MIT](LICENSE) © [Helge Sverre](https://github.com/HelgeSverre)

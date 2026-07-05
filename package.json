@@ -1,9 +1,22 @@
 {
-  "name": "@sema/ui",
+  "name": "@sema-lang/ui",
   "description": "Web Components for the Sema design system. Lit-based, framework-agnostic, consumes DESIGN.md tokens via CSS custom properties.",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
+  "license": "MIT",
+  "author": "Helge Sverre <helge.sverre@gmail.com>",
+  "homepage": "https://sema-lang.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sema-lisp/ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sema-lisp/ui/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "main": "src/index.ts",
   "module": "src/index.ts",
   "types": "src/index.ts",
@@ -39,7 +52,6 @@
   "dependencies": {
     "@lit/task": "^1.0.3",
     "@shikijs/langs": "^4.2.0",
-    "@vitest/ui": "^4.1.8",
     "lit": "^3.3.3",
     "marked": "^12.0.2",
     "shiki": "^4.2.0"
@@ -48,6 +60,7 @@
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@eslint/js": "^9.39.4",
     "@vitest/browser-playwright": "^4.1.8",
+    "@vitest/ui": "^4.1.8",
     "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^9.39.4",
     "eslint-plugin-lit": "^2.3.1",

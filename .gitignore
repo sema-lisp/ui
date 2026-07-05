@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Lockfiles (npm only)
+bun.lock
+bun.lockb
+yarn.lock
+pnpm-lock.yaml
+
+# Test artifacts
+.vitest-attachments/
+tests/__screenshots__/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
