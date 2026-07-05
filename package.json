@@ -14,8 +14,7 @@
     "url": "https://github.com/sema-lisp/ui/issues"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "main": "src/index.ts",
   "module": "src/index.ts",
