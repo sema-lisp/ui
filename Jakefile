@@ -6,7 +6,7 @@
 
 # File recipe: rebuild the standalone bundle only when sources/config change.
 file dist/sema-ui.js: src/**/* package.json vite.config.ts tsconfig.json
-    @needs npm
+    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
     npm install
     npm run build
 
@@ -18,27 +18,27 @@ task build: [dist/sema-ui.js]
 @group ui
 @desc "Start the Vite dev server with the component showcase"
 task dev:
-    @needs npm
+    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
     npm install
     npm run dev
 
 @group ui
 @desc "Type-check the sources (tsc --noEmit)"
 task typecheck:
-    @needs npm
+    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
     npm run typecheck
 
 @group ui
 @desc "Run component tests (Vitest + Playwright, headless)"
 task test:
-    @needs npm
+    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
     npm install
     npm test
 
 @group ui
 @desc "Lint the sources (ESLint)"
 task lint:
-    @needs npm
+    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
     npm run lint
 
 @group ui
