@@ -18,27 +18,27 @@ task build: [dist/sema-ui.js]
 @group ui
 @desc "Start the Vite dev server with the component showcase"
 task dev:
-    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
+    @needs npm
     npm install
     npm run dev
 
 @group ui
 @desc "Type-check the sources (tsc --noEmit)"
 task typecheck:
-    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
+    @needs npm
     npm run typecheck
 
 @group ui
 @desc "Run component tests (Vitest + Playwright, headless)"
 task test:
-    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
+    @needs npm
     npm install
     npm test
 
 @group ui
 @desc "Lint the sources (ESLint)"
 task lint:
-    @command -v npm >/dev/null || { echo "npm not found — install Node.js" >&2; exit 1; }
+    @needs npm
     npm run lint
 
 @group ui
