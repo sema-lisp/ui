@@ -21,6 +21,10 @@ export class SemaInput extends SemaElement {
       :host {
         display: block;
       }
+      :host([readonly]) .control {
+        opacity: 0.6;
+        cursor: default;
+      }
     `,
   ];
 
@@ -30,6 +34,10 @@ export class SemaInput extends SemaElement {
   @property() name = '';
   @property({ type: Boolean, reflect: true }) disabled = false;
   @property({ type: Boolean, reflect: true }) required = false;
+  /** Display-only: the value is submitted but not editable. */
+  @property({ type: Boolean, reflect: true }) readonly = false;
+  /** Maximum number of characters the control accepts (omit for no limit). */
+  @property({ type: Number }) maxlength?: number;
 
   private _internals = this.attachInternals();
 
@@ -60,6 +68,12 @@ export class SemaInput extends SemaElement {
   private _onChange = () => {
     this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   };
+  // Match a native single-line text input: Enter submits the associated form.
+  // The inner <input> lives in shadow DOM, so implicit submission never reaches
+  // the light-DOM form; requestSubmit() (via ElementInternals.form) restores it.
+  private _onKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.isComposing) this._internals.form?.requestSubmit();
+  };
 
   render() {
     return html`<input
@@ -70,11 +84,14 @@ export class SemaInput extends SemaElement {
       placeholder=${this.placeholder}
       ?disabled=${this.disabled}
       ?required=${this.required}
+      ?readonly=${this.readonly}
+      maxlength=${ifDefined(this.maxlength)}
       aria-label=${this.getAttribute('aria-label') || this.name || 'input'}
       aria-description=${ifDefined(this.getAttribute('aria-description') ?? undefined)}
       aria-invalid=${ifDefined(this.getAttribute('aria-invalid') ?? undefined)}
       @input=${this._onInput}
       @change=${this._onChange}
+      @keydown=${this._onKeydown}
     />`;
   }
 }

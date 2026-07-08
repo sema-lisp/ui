@@ -52,6 +52,39 @@ describe('SemaInput', () => {
     await el.updateComplete
     expect(el.value).toBe('')
   })
+
+  it('submits the associated form on Enter', async () => {
+    document.body.innerHTML = `<form><sema-input name="x"></sema-input><button type="submit">go</button></form>`
+    const el = document.querySelector('sema-input') as SemaInput
+    await el.updateComplete
+    let submitted = 0
+    document.querySelector('form')!.addEventListener('submit', (e) => {
+      e.preventDefault()
+      submitted++
+    })
+    const input = el.shadowRoot!.querySelector('input')!
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true }))
+    expect(submitted).toBe(1)
+  })
+
+  it('does not throw on Enter when not inside a form', async () => {
+    document.body.innerHTML = `<sema-input></sema-input>`
+    const el = document.querySelector('sema-input') as SemaInput
+    await el.updateComplete
+    const input = el.shadowRoot!.querySelector('input')!
+    expect(() =>
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true })),
+    ).not.toThrow()
+  })
+
+  it('forwards readonly and maxlength to the inner control', async () => {
+    document.body.innerHTML = `<sema-input readonly maxlength="5"></sema-input>`
+    const el = document.querySelector('sema-input') as SemaInput
+    await el.updateComplete
+    const input = el.shadowRoot!.querySelector('input')!
+    expect(input.readOnly).toBe(true)
+    expect(input.getAttribute('maxlength')).toBe('5')
+  })
 })
 
 describe('SemaTextarea', () => {

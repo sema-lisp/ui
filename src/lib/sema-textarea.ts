@@ -36,6 +36,11 @@ export class SemaTextarea extends SemaElement {
         min-height: 3lh;
         max-height: 16lh;
       }
+      :host([readonly]) .control {
+        opacity: 0.6;
+        cursor: default;
+        resize: none;
+      }
     `,
   ];
 
@@ -45,6 +50,10 @@ export class SemaTextarea extends SemaElement {
   @property({ type: Number }) rows = 4;
   @property({ type: Boolean, reflect: true }) disabled = false;
   @property({ type: Boolean, reflect: true }) required = false;
+  /** Display-only: the value is submitted but not editable. */
+  @property({ type: Boolean, reflect: true }) readonly = false;
+  /** Maximum number of characters the control accepts (omit for no limit). */
+  @property({ type: Number }) maxlength?: number;
   /** Grow to fit content (CSS field-sizing, with a scrollHeight JS fallback). */
   @property({ type: Boolean, reflect: true }) autosize = false;
 
@@ -101,6 +110,8 @@ export class SemaTextarea extends SemaElement {
       placeholder=${this.placeholder}
       ?disabled=${this.disabled}
       ?required=${this.required}
+      ?readonly=${this.readonly}
+      maxlength=${ifDefined(this.maxlength)}
       aria-label=${this.getAttribute('aria-label') || this.name || 'textarea'}
       aria-description=${ifDefined(this.getAttribute('aria-description') ?? undefined)}
       aria-invalid=${ifDefined(this.getAttribute('aria-invalid') ?? undefined)}

@@ -10,6 +10,125 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/lib/sema-badge.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Small status/label chip. Color comes from `variant`; shape from `pill`.\nThe `pill` shape + a wrapping container covers the old Provider Pill List.",
+          "name": "SemaBadge",
+          "cssParts": [
+            {
+              "description": "the inner chip element",
+              "name": "badge"
+            }
+          ],
+          "slots": [
+            {
+              "description": "the badge label",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "variant",
+              "type": {
+                "text": "BadgeVariant"
+              },
+              "default": "'neutral'",
+              "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "pill",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Rounded \"pill\" shape — use inside a wrapping flex container for tag lists.",
+              "attribute": "pill",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "dot",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show a leading status dot in the current variant color.",
+              "attribute": "dot",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "variant",
+              "type": {
+                "text": "BadgeVariant"
+              },
+              "default": "'neutral'",
+              "fieldName": "variant"
+            },
+            {
+              "name": "pill",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Rounded \"pill\" shape — use inside a wrapping flex container for tag lists.",
+              "fieldName": "pill"
+            },
+            {
+              "name": "dot",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show a leading status dot in the current variant color.",
+              "fieldName": "dot"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-badge",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SemaBadge",
+          "declaration": {
+            "name": "SemaBadge",
+            "module": "src/lib/sema-badge.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-badge",
+          "declaration": {
+            "name": "SemaBadge",
+            "module": "src/lib/sema-badge.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/lib/sema-button.ts",
       "declarations": [
         {
@@ -34,6 +153,16 @@
               },
               "default": "'primary'",
               "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "type": {
+                "text": "ButtonSize"
+              },
+              "default": "'md'",
+              "attribute": "size",
               "reflects": true
             },
             {
@@ -85,6 +214,14 @@
               "fieldName": "variant"
             },
             {
+              "name": "size",
+              "type": {
+                "text": "ButtonSize"
+              },
+              "default": "'md'",
+              "fieldName": "size"
+            },
+            {
               "name": "disabled",
               "type": {
                 "text": "boolean"
@@ -131,6 +268,535 @@
           "declaration": {
             "name": "SemaButton",
             "module": "src/lib/sema-button.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/lib/sema-code-typer.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "revealLines",
+          "return": {
+            "type": {
+              "text": "CodeToken[][]"
+            }
+          },
+          "parameters": [
+            {
+              "name": "tokens",
+              "type": {
+                "text": "CodeToken[]"
+              }
+            },
+            {
+              "name": "revealed",
+              "type": {
+                "text": "number"
+              }
+            }
+          ],
+          "description": "Split the first `revealed` characters of a token list into lines (each a list of\n`{ text, cls }` segments). Newline tokens start a new line. Pure + exported for tests."
+        },
+        {
+          "kind": "class",
+          "description": "`<sema-code-typer>` — types provided code out character-by-character with live Sema\nsyntax highlighting, a moving caret, and optional editor chrome (frame, gutter, status).\n\nHighlights once (Shiki tokens) then reveals by character — cheap and accurate. Colors\ncome from the shared `--syntax-*` / design tokens (no hardcoded hex). Honors\n`prefers-reduced-motion` (renders the full code, no animation).\n\n```html\n<sema-code-typer frame status filename=\"maze.sema\" loop>\n  (define (square x) (* x x))\n</sema-code-typer>\n```\n\nImperative: `play()`, `pause()`, `restart()`, `seek(n)`. Fires `sema-typer-done`.",
+          "name": "SemaCodeTyper",
+          "members": [
+            {
+              "kind": "field",
+              "name": "lang",
+              "type": {
+                "text": "string"
+              },
+              "default": "'sema'",
+              "description": "Language id for highlighting (`sema`, `json`, `rust`, …).",
+              "attribute": "lang",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "cps",
+              "type": {
+                "text": "number"
+              },
+              "default": "45",
+              "description": "Typing speed in characters per second.",
+              "attribute": "cps"
+            },
+            {
+              "kind": "field",
+              "name": "startDelay",
+              "type": {
+                "text": "number"
+              },
+              "default": "400",
+              "description": "Delay (ms) before typing begins.",
+              "attribute": "start-delay"
+            },
+            {
+              "kind": "field",
+              "name": "loop",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Restart after finishing (single snippet) / loop the snippet list.",
+              "attribute": "loop",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "loopDelay",
+              "type": {
+                "text": "number"
+              },
+              "default": "1500",
+              "description": "Delay (ms) between completion and restart/next snippet.",
+              "attribute": "loop-delay"
+            },
+            {
+              "kind": "field",
+              "name": "autoplay",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "true",
+              "description": "Start typing automatically once the source is available.",
+              "attribute": "autoplay",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "frame",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Render the titled editor frame/box.",
+              "attribute": "frame",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "logo",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Use the Sema wordmark logo (SVG) as the frame legend instead of the `( sema )` text.",
+              "attribute": "logo",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "lineNumbers",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show the line-number gutter.",
+              "attribute": "line-numbers",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "status",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show the status line (mode · filename · Ln:Col). Requires `frame`.",
+              "attribute": "status",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "filename",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Filename shown in the status line.",
+              "attribute": "filename",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "rows",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "Visible height in lines (0 = grow to content, no scroll).",
+              "attribute": "rows"
+            },
+            {
+              "kind": "field",
+              "name": "noDedent",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Disable indentation normalization of the slotted source.",
+              "attribute": "no-dedent",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "snippets",
+              "type": {
+                "text": "string[] | undefined"
+              },
+              "description": "Optional list of snippets to cycle through (JS property). Overrides slotted source."
+            },
+            {
+              "kind": "field",
+              "name": "_revealed",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_index",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_raw",
+              "type": {
+                "text": "string"
+              },
+              "privacy": "private",
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "_code",
+              "type": {
+                "text": "string"
+              },
+              "privacy": "private",
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "_total",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_raf",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_timer",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_startAt",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_playing",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_reduce",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false"
+            },
+            {
+              "kind": "method",
+              "name": "_sources",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "string[]"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_tokensTask",
+              "privacy": "private",
+              "default": "new Task(this, { task: async ([raw, lang, noDedent]) => { const code = noDedent ? raw.replace(/^\\n/, '').replace(/\\s+$/, '') : dedent(raw); this._code = code; this._total = code.length; const toks: CodeToken[] = canHighlight(lang) ? await tokenize(code, lang) : code ? [{ text: code, cls: '' }] : []; this._begin(); return toks; }, args: () => [this._sources()[this._index % this._sources().length] ?? '', this.lang, this.noDedent] as const, })",
+              "description": "dedent → tokenize the active snippet, then (re)start typing it."
+            },
+            {
+              "kind": "field",
+              "name": "_onSlotChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_begin",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_tick",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_afterComplete",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_stop",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "total",
+              "type": {
+                "text": "number"
+              },
+              "description": "Total character count of the active (dedented) snippet — available once tokenized.",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "play",
+              "description": "Resume typing from the current caret."
+            },
+            {
+              "kind": "method",
+              "name": "pause",
+              "description": "Pause typing."
+            },
+            {
+              "kind": "method",
+              "name": "restart",
+              "description": "Reset to the start of the current snippet and play."
+            },
+            {
+              "kind": "method",
+              "name": "seek",
+              "parameters": [
+                {
+                  "name": "n",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Jump to character `n` (clamped) and pause there."
+            },
+            {
+              "kind": "method",
+              "name": "_pos",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "{ ln: number; col: number }"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderEditor",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "lang",
+              "type": {
+                "text": "string"
+              },
+              "default": "'sema'",
+              "description": "Language id for highlighting (`sema`, `json`, `rust`, …).",
+              "fieldName": "lang"
+            },
+            {
+              "name": "cps",
+              "type": {
+                "text": "number"
+              },
+              "default": "45",
+              "description": "Typing speed in characters per second.",
+              "fieldName": "cps"
+            },
+            {
+              "name": "start-delay",
+              "type": {
+                "text": "number"
+              },
+              "default": "400",
+              "description": "Delay (ms) before typing begins.",
+              "fieldName": "startDelay"
+            },
+            {
+              "name": "loop",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Restart after finishing (single snippet) / loop the snippet list.",
+              "fieldName": "loop"
+            },
+            {
+              "name": "loop-delay",
+              "type": {
+                "text": "number"
+              },
+              "default": "1500",
+              "description": "Delay (ms) between completion and restart/next snippet.",
+              "fieldName": "loopDelay"
+            },
+            {
+              "name": "autoplay",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "true",
+              "description": "Start typing automatically once the source is available.",
+              "fieldName": "autoplay"
+            },
+            {
+              "name": "frame",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Render the titled editor frame/box.",
+              "fieldName": "frame"
+            },
+            {
+              "name": "logo",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Use the Sema wordmark logo (SVG) as the frame legend instead of the `( sema )` text.",
+              "fieldName": "logo"
+            },
+            {
+              "name": "line-numbers",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show the line-number gutter.",
+              "fieldName": "lineNumbers"
+            },
+            {
+              "name": "status",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show the status line (mode · filename · Ln:Col). Requires `frame`.",
+              "fieldName": "status"
+            },
+            {
+              "name": "filename",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Filename shown in the status line.",
+              "fieldName": "filename"
+            },
+            {
+              "name": "rows",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "Visible height in lines (0 = grow to content, no scroll).",
+              "fieldName": "rows"
+            },
+            {
+              "name": "no-dedent",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Disable indentation normalization of the slotted source.",
+              "fieldName": "noDedent"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-code-typer",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "revealLines",
+          "declaration": {
+            "name": "revealLines",
+            "module": "src/lib/sema-code-typer.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "SemaCodeTyper",
+          "declaration": {
+            "name": "SemaCodeTyper",
+            "module": "src/lib/sema-code-typer.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-code-typer",
+          "declaration": {
+            "name": "SemaCodeTyper",
+            "module": "src/lib/sema-code-typer.ts"
           }
         }
       ]
@@ -625,6 +1291,554 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/lib/sema-drawer.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Generic, dockable slide-over panel. Dock to any edge via `placement`.\nModal: traps focus, locks scroll, closes on backdrop click and Escape.\n\nSize the panel with the `--drawer-size` custom property\n(width for left/right, height for top/bottom).",
+          "name": "SemaDrawer",
+          "cssParts": [
+            {
+              "description": "the scrim behind the panel",
+              "name": "backdrop"
+            },
+            {
+              "description": "the sliding panel",
+              "name": "panel"
+            },
+            {
+              "description": "the built-in close button",
+              "name": "close"
+            }
+          ],
+          "slots": [
+            {
+              "description": "drawer body content",
+              "name": ""
+            },
+            {
+              "description": "optional header content (rendered next to the close button)",
+              "name": "header"
+            },
+            {
+              "description": "optional footer content (e.g. actions)",
+              "name": "footer"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "open",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "open",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "type": {
+                "text": "DrawerPlacement"
+              },
+              "default": "'right'",
+              "attribute": "placement",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "_labelId",
+              "privacy": "private",
+              "default": "`sema-drawer-${Math.random().toString(36).slice(2, 8)}`"
+            },
+            {
+              "kind": "field",
+              "name": "_hasFooter",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_focusTrap",
+              "privacy": "private",
+              "default": "new FocusTrapController(this, { getContainer: (host): HTMLElement => (host.shadowRoot?.querySelector('.panel') as HTMLElement | null) ?? host, isActive: (host) => host.open, lockScroll: true, })"
+            },
+            {
+              "kind": "field",
+              "name": "_onDocKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_onFooterSlotChange",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "close"
+            },
+            {
+              "kind": "method",
+              "name": "show"
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "events": [
+            {
+              "name": "sema-drawer-open",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "when the drawer opens"
+            },
+            {
+              "name": "sema-drawer-close",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "when the drawer closes"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "open",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "open"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "DrawerPlacement"
+              },
+              "default": "'right'",
+              "fieldName": "placement"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "label"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-drawer",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SemaDrawer",
+          "declaration": {
+            "name": "SemaDrawer",
+            "module": "src/lib/sema-drawer.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-drawer",
+          "declaration": {
+            "name": "SemaDrawer",
+            "module": "src/lib/sema-drawer.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/lib/sema-editor.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "`<sema-editor>` — the single editable, syntax-highlighting code editor for the\nSema ecosystem (notebook cells, the playground, anywhere code is edited).\n\nA transparent `<textarea>` (real caret / selection / IME / undo) sits over an\n`aria-hidden` overlay of per-line `<div>`s painted by the **one** shared Shiki\nhighlighter — so it renders identically to `<sema-code>` and works for every\nlanguage, not just Sema. Highlighting is synchronous after a one-time async\ngrammar warmup; until warm it shows escaped plain text and upgrades in place.\n\n## Gutter (line numbers + breakpoints + debug line)\nOpt in with `line-numbers`. The gutter is a *mechanism*: it renders the markers it\nis told about and reports clicks — it owns no policy. Consumers drive it:\n- `.breakpoints = [3, 7]` — lines that show a breakpoint dot.\n- `current-line=\"5\"` — the active/debug line (highlighted in gutter + editor).\n- listen for `gutter-click` (`detail: { line }`) to toggle/snap breakpoints, etc.\n\nEvents: `input` and `change` as `CustomEvent<{ value }>`; native `keydown` bubbles\n(composed) so hosts can bind Shift+Enter etc.",
+          "name": "SemaEditor",
+          "members": [
+            {
+              "kind": "field",
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "value"
+            },
+            {
+              "kind": "field",
+              "name": "lang",
+              "type": {
+                "text": "string"
+              },
+              "default": "'sema'",
+              "attribute": "lang",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "placeholder",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "placeholder"
+            },
+            {
+              "kind": "field",
+              "name": "readonly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "readonly",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "autosize",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "autosize",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "tabSize",
+              "type": {
+                "text": "number"
+              },
+              "default": "2",
+              "attribute": "tab-size"
+            },
+            {
+              "kind": "field",
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "testid"
+            },
+            {
+              "kind": "field",
+              "name": "lineNumbers",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show the line-number gutter (also enables breakpoint dots + current-line).",
+              "attribute": "line-numbers",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "breakpoints",
+              "type": {
+                "text": "number[]"
+              },
+              "default": "[]",
+              "description": "Lines (1-based) that display a breakpoint marker. Consumer-owned."
+            },
+            {
+              "kind": "field",
+              "name": "currentLine",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The active/debug line (1-based) to highlight, or 0 for none.",
+              "attribute": "current-line"
+            },
+            {
+              "kind": "field",
+              "name": "_lines",
+              "type": {
+                "text": "string[]"
+              },
+              "privacy": "private",
+              "default": "['']",
+              "description": "Highlighted source split into per-line HTML (aligns with gutter + textarea)."
+            },
+            {
+              "kind": "field",
+              "name": "_undo",
+              "type": {
+                "text": "TextareaUndo | undefined"
+              },
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_ta",
+              "type": {
+                "text": "HTMLTextAreaElement | null"
+              },
+              "privacy": "private",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_warm",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_relight",
+              "privacy": "private",
+              "description": "Recompute the per-line highlighted overlay. Shiki tokenizes per line and never\nspans a newline, so splitting the joined output yields valid per-line HTML."
+            },
+            {
+              "kind": "method",
+              "name": "resetHistory",
+              "description": "Clear the undo/redo history — call after loading unrelated content."
+            },
+            {
+              "kind": "method",
+              "name": "focus",
+              "description": "Focus delegates to the inner textarea (the host itself isn't focusable)."
+            },
+            {
+              "kind": "method",
+              "name": "scrollToLine",
+              "parameters": [
+                {
+                  "name": "line",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Scroll so 1-based `line` is vertically centered (e.g. a debugger's current line)."
+            },
+            {
+              "kind": "method",
+              "name": "_grow",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onInput",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onScroll",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_indent",
+              "privacy": "private",
+              "description": "Tab: insert spaces at the cursor, or indent every line in a multi-line selection."
+            },
+            {
+              "kind": "method",
+              "name": "_dedent",
+              "privacy": "private",
+              "description": "Shift+Tab: remove up to `tab-size` leading spaces from each line in range."
+            },
+            {
+              "kind": "method",
+              "name": "_gutterClick",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "line",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onGutterKeydown",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                },
+                {
+                  "name": "line",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "events": [
+            {
+              "name": "gutter-click",
+              "type": {
+                "text": "CustomEvent"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "value"
+            },
+            {
+              "name": "lang",
+              "type": {
+                "text": "string"
+              },
+              "default": "'sema'",
+              "fieldName": "lang"
+            },
+            {
+              "name": "placeholder",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "placeholder"
+            },
+            {
+              "name": "readonly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "readonly"
+            },
+            {
+              "name": "autosize",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "autosize"
+            },
+            {
+              "name": "tab-size",
+              "type": {
+                "text": "number"
+              },
+              "default": "2",
+              "fieldName": "tabSize"
+            },
+            {
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "testid"
+            },
+            {
+              "name": "line-numbers",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Show the line-number gutter (also enables breakpoint dots + current-line).",
+              "fieldName": "lineNumbers"
+            },
+            {
+              "name": "current-line",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The active/debug line (1-based) to highlight, or 0 for none.",
+              "fieldName": "currentLine"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-editor",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SemaEditor",
+          "declaration": {
+            "name": "SemaEditor",
+            "module": "src/lib/sema-editor.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-editor",
+          "declaration": {
+            "name": "SemaEditor",
+            "module": "src/lib/sema-editor.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/lib/sema-field.ts",
       "declarations": [
         {
@@ -921,6 +2135,26 @@
             },
             {
               "kind": "field",
+              "name": "readonly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Display-only: the value is submitted but not editable.",
+              "attribute": "readonly",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "maxlength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "Maximum number of characters the control accepts (omit for no limit).",
+              "attribute": "maxlength"
+            },
+            {
+              "kind": "field",
               "name": "_internals",
               "privacy": "private"
             },
@@ -936,6 +2170,11 @@
             {
               "kind": "field",
               "name": "_onChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onKeydown",
               "privacy": "private"
             },
             {
@@ -1006,6 +2245,23 @@
               },
               "default": "false",
               "fieldName": "required"
+            },
+            {
+              "name": "readonly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Display-only: the value is submitted but not editable.",
+              "fieldName": "readonly"
+            },
+            {
+              "name": "maxlength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "Maximum number of characters the control accepts (omit for no limit).",
+              "fieldName": "maxlength"
             }
           ],
           "superclass": {
@@ -1031,6 +2287,223 @@
           "declaration": {
             "name": "SemaInput",
             "module": "src/lib/sema-input.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/lib/sema-kbd.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Renders a keyboard key or shortcut combo as key-caps.\n\nUse slotted text for a single key (`<sema-kbd>Esc</sema-kbd>`), or the `keys`\nattribute for a combo (`<sema-kbd keys=\"Cmd+Shift+P\">`), which splits on `+`\nand renders one cap per key joined by separators.",
+          "name": "SemaKbd",
+          "cssParts": [
+            {
+              "description": "each key-cap element",
+              "name": "key"
+            }
+          ],
+          "slots": [
+            {
+              "description": "a single key label (ignored when `keys` is set)",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "keys",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "A `+`-separated shortcut combo, e.g. `Cmd+Shift+P`. Overrides the slot.",
+              "attribute": "keys"
+            },
+            {
+              "kind": "field",
+              "name": "_parts",
+              "type": {
+                "text": "string[]"
+              },
+              "privacy": "private",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "keys",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "A `+`-separated shortcut combo, e.g. `Cmd+Shift+P`. Overrides the slot.",
+              "fieldName": "keys"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-kbd",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SemaKbd",
+          "declaration": {
+            "name": "SemaKbd",
+            "module": "src/lib/sema-kbd.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-kbd",
+          "declaration": {
+            "name": "SemaKbd",
+            "module": "src/lib/sema-kbd.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/lib/sema-markdown.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "`<sema-markdown>` — renders a markdown string (`value` or slotted text) as\ntoken-styled HTML. Fenced code is highlighted with the shared Shiki pipeline so\nit matches `sema-code`. Output is sanitized (tag/attr allowlist) before injection.",
+          "name": "SemaMarkdown",
+          "members": [
+            {
+              "kind": "field",
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "value"
+            },
+            {
+              "kind": "field",
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "testid"
+            },
+            {
+              "kind": "field",
+              "name": "_html",
+              "type": {
+                "text": "string"
+              },
+              "privacy": "private",
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "_slotText",
+              "type": {
+                "text": "string"
+              },
+              "privacy": "private",
+              "default": "''"
+            },
+            {
+              "kind": "method",
+              "name": "_render",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_highlightFences",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "Promise<string>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "rendered",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Upgrade ```lang fenced blocks to Shiki-highlighted markup (best-effort)."
+            },
+            {
+              "kind": "field",
+              "name": "_onSlot",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "value"
+            },
+            {
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "testid"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-markdown",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SemaMarkdown",
+          "declaration": {
+            "name": "SemaMarkdown",
+            "module": "src/lib/sema-markdown.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-markdown",
+          "declaration": {
+            "name": "SemaMarkdown",
+            "module": "src/lib/sema-markdown.ts"
           }
         }
       ]
@@ -1360,6 +2833,230 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/lib/sema-pagination.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "paginationItems",
+          "return": {
+            "type": {
+              "text": "PageItem[]"
+            }
+          },
+          "parameters": [
+            {
+              "name": "page",
+              "type": {
+                "text": "number"
+              }
+            },
+            {
+              "name": "count",
+              "type": {
+                "text": "number"
+              }
+            },
+            {
+              "name": "siblings",
+              "default": "1"
+            },
+            {
+              "name": "boundaries",
+              "default": "1"
+            }
+          ],
+          "description": "Build the displayed page sequence with collapsed ellipses.\nMirrors the well-tested MUI `usePagination` truncation so the visible width\nstays stable as the current page moves."
+        },
+        {
+          "kind": "class",
+          "description": "Page navigation with prev/next and collapsed ellipses.\n\nSelecting a page updates `page` and fires `sema-page-change`. Consumers may\ntreat it as controlled (re-set `page` from the event) or uncontrolled.",
+          "name": "SemaPagination",
+          "cssParts": [
+            {
+              "description": "the nav landmark",
+              "name": "nav"
+            },
+            {
+              "description": "any page / prev / next button",
+              "name": "item"
+            },
+            {
+              "description": "a numbered page button",
+              "name": "page"
+            },
+            {
+              "description": "the active page button",
+              "name": "current"
+            },
+            {
+              "description": "the previous button",
+              "name": "prev"
+            },
+            {
+              "description": "the next button",
+              "name": "next"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "page",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Current page (1-based).",
+              "attribute": "page",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "total",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Total number of pages.",
+              "attribute": "total",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "siblings",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Pages shown on each side of the current page.",
+              "attribute": "siblings"
+            },
+            {
+              "kind": "field",
+              "name": "boundaries",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Pages always shown at the start and end.",
+              "attribute": "boundaries"
+            },
+            {
+              "kind": "field",
+              "name": "_current",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_go",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "target",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "events": [
+            {
+              "name": "sema-page-change",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "`{ page }` when a new page is selected"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "page",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Current page (1-based).",
+              "fieldName": "page"
+            },
+            {
+              "name": "total",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Total number of pages.",
+              "fieldName": "total"
+            },
+            {
+              "name": "siblings",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Pages shown on each side of the current page.",
+              "fieldName": "siblings"
+            },
+            {
+              "name": "boundaries",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Pages always shown at the start and end.",
+              "fieldName": "boundaries"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-pagination",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "paginationItems",
+          "declaration": {
+            "name": "paginationItems",
+            "module": "src/lib/sema-pagination.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "SemaPagination",
+          "declaration": {
+            "name": "SemaPagination",
+            "module": "src/lib/sema-pagination.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-pagination",
+          "declaration": {
+            "name": "SemaPagination",
+            "module": "src/lib/sema-pagination.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/lib/sema-popover.ts",
       "declarations": [
         {
@@ -1592,7 +3289,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "`<sema-scroll-area>` — a scroll container with the shared themed thin scrollbar.\n\nConsolidates the `scrollbar-width: thin; scrollbar-color: …` styling that was\ncopy-pasted across surfaces. Give it a bounded size (height / max-height) and it\nscrolls its slotted content; `orientation` picks the axis.\n\n```html\n<sema-scroll-area style=\"max-height: 12rem;\">…long content…</sema-scroll-area>\n```",
+          "description": "`<sema-scroll-area>` — a scroll container with the shared themed thin scrollbar.\n\nConsolidates the `scrollbar-width: thin; scrollbar-color: …` styling that was\ncopy-pasted across surfaces. Give it a bounded size (height / max-height) and it\nscrolls its slotted content; `orientation` picks the axis.\n\n```html\n<sema-scroll-area style=\"max-height: 192px;\">…long content…</sema-scroll-area>\n```",
           "name": "SemaScrollArea",
           "members": [
             {
@@ -2026,7 +3723,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "`<sema-sidebar>` — static two-pane sidebar layout: fixed-basis aside +\ngrowing content, stacking intrinsically on narrow containers. It never\nresizes interactively and emits no events. For drag-resizable panes, use\n`<sema-splitter>` between app-managed panes.\n\nExactly two panes: the `aside` slot and the default slot (the content\npane); more is undefined behavior. Slot assignment, not source position,\ndetermines which pane is which — author the light DOM in reading order.\nThe host is the flex container, so both panes are directly stylable from\npage CSS; the stacking \"breakpoint\" is derived from available space\n(`content-min`, effective default 50%), no media or container queries.\nPanes stretch to equal height by default; set `align-items: flex-start` on\nthe host from page CSS for top alignment. Semantics-neutral: no ARIA\nroles — consumers add landmarks (`<nav slot=\"aside\">`).\n\n```html\n<sema-sidebar side-width=\"16rem\" gap=\"xl\">\n  <nav slot=\"aside\" aria-label=\"Docs\">…</nav>\n  <article>…</article>\n</sema-sidebar>\n```",
+          "description": "`<sema-sidebar>` — static two-pane sidebar layout: fixed-basis aside +\ngrowing content, stacking intrinsically on narrow containers. It never\nresizes interactively and emits no events. For drag-resizable panes, use\n`<sema-splitter>` between app-managed panes.\n\nExactly two panes: the `aside` slot and the default slot (the content\npane); more is undefined behavior. Slot assignment, not source position,\ndetermines which pane is which — author the light DOM in reading order.\nThe host is the flex container, so both panes are directly stylable from\npage CSS; the stacking \"breakpoint\" is derived from available space\n(`content-min`, effective default 50%), no media or container queries.\nPanes stretch to equal height by default; set `align-items: flex-start` on\nthe host from page CSS for top alignment. Semantics-neutral: no ARIA\nroles — consumers add landmarks (`<nav slot=\"aside\">`).\n\n```html\n<sema-sidebar side-width=\"256px\" gap=\"xl\">\n  <nav slot=\"aside\" aria-label=\"Docs\">…</nav>\n  <article>…</article>\n</sema-sidebar>\n```",
           "name": "SemaSidebar",
           "members": [
             {
@@ -2035,7 +3732,7 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "Aside flex-basis (any CSS length). Unset → 18rem.",
+              "description": "Aside flex-basis (any CSS length). Unset → 288px.",
               "attribute": "side-width",
               "reflects": true
             },
@@ -2076,7 +3773,7 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "Aside flex-basis (any CSS length). Unset → 18rem.",
+              "description": "Aside flex-basis (any CSS length). Unset → 288px.",
               "fieldName": "sideWidth"
             },
             {
@@ -2119,6 +3816,98 @@
           "declaration": {
             "name": "SemaSidebar",
             "module": "src/lib/sema-sidebar.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/lib/sema-spinner.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Minimal inline loading indicator. Announces via a `role=\"status\"` live region;\nthe visual ring is hidden from assistive tech.",
+          "name": "SemaSpinner",
+          "cssParts": [
+            {
+              "description": "the spinning ring element",
+              "name": "spinner"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "size",
+              "type": {
+                "text": "SpinnerSize"
+              },
+              "default": "'md'",
+              "attribute": "size",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "text": "string"
+              },
+              "default": "'Loading'",
+              "description": "Accessible label announced by the status live region.",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "base",
+              "static": true,
+              "default": "css` :host { box-sizing: border-box; } :host *, :host *::before, :host *::after { box-sizing: border-box; } @media (prefers-reduced-motion: reduce) { /* Near-zero (not zero) so animationend/transitionend still fire. */ :host, :host *, :host *::before, :host *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto; } } `",
+              "inheritedFrom": {
+                "name": "SemaElement",
+                "module": "src/internal/sema-element.ts"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "size",
+              "type": {
+                "text": "SpinnerSize"
+              },
+              "default": "'md'",
+              "fieldName": "size"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "string"
+              },
+              "default": "'Loading'",
+              "description": "Accessible label announced by the status live region.",
+              "fieldName": "label"
+            }
+          ],
+          "superclass": {
+            "name": "SemaElement",
+            "module": "/src/internal/sema-element.js"
+          },
+          "tagName": "sema-spinner",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SemaSpinner",
+          "declaration": {
+            "name": "SemaSpinner",
+            "module": "src/lib/sema-spinner.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "sema-spinner",
+          "declaration": {
+            "name": "SemaSpinner",
+            "module": "src/lib/sema-spinner.ts"
           }
         }
       ]
@@ -2988,6 +4777,26 @@
             },
             {
               "kind": "field",
+              "name": "readonly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Display-only: the value is submitted but not editable.",
+              "attribute": "readonly",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "maxlength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "Maximum number of characters the control accepts (omit for no limit).",
+              "attribute": "maxlength"
+            },
+            {
+              "kind": "field",
               "name": "autosize",
               "type": {
                 "text": "boolean"
@@ -3099,6 +4908,23 @@
               },
               "default": "false",
               "fieldName": "required"
+            },
+            {
+              "name": "readonly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Display-only: the value is submitted but not editable.",
+              "fieldName": "readonly"
+            },
+            {
+              "name": "maxlength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "Maximum number of characters the control accepts (omit for no limit).",
+              "fieldName": "maxlength"
             },
             {
               "name": "autosize",
@@ -3469,7 +5295,10 @@
               "name": "_toggles",
               "type": {
                 "text": "SemaToggle[]"
-              }
+              },
+              "privacy": "private",
+              "description": "All descendant toggles. A getter (not queryAssignedElements) so each toggle may\nbe wrapped — e.g. in a `<sema-tooltip>` to explain the option — and still count.",
+              "readonly": true
             },
             {
               "kind": "method",
@@ -3889,7 +5718,8 @@
                 "text": "number"
               },
               "default": "0",
-              "attribute": "depth"
+              "attribute": "depth",
+              "reflects": true
             },
             {
               "kind": "field",
@@ -4227,6 +6057,48 @@
         },
         {
           "kind": "function",
+          "name": "preloadLanguage",
+          "return": {
+            "type": {
+              "text": "Promise<void>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "lang",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Warm the highlighter and load `lang`'s grammar so `highlightToHtmlSync` can run.\nCall once (e.g. when an editor connects); subsequent sync highlights are instant."
+        },
+        {
+          "kind": "function",
+          "name": "highlightToHtmlSync",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "code",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "lang",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Synchronous highlight for live editors — the overlay repaints on every keystroke\nand cannot await. Requires the grammar to be loaded already (via `preloadLanguage`);\nuntil then, or for an unsupported/failed lang, returns escaped plain text so the\neditor degrades gracefully and upgrades in place once warm."
+        },
+        {
+          "kind": "function",
           "name": "highlightToHtml",
           "return": {
             "type": {
@@ -4248,6 +6120,30 @@
             }
           ],
           "description": "Highlight `code` and return the inner HTML for a `<pre><code>` element:\nper-token `<span class=\"tok-*\">` (HTML-escaped), lines joined by \"\\n\".\n\nFor an unsupported `lang` (or if grammar load/tokenize fails), returns the escaped\nplain text (no spans) so callers can render it verbatim."
+        },
+        {
+          "kind": "function",
+          "name": "tokenize",
+          "return": {
+            "type": {
+              "text": "Promise<CodeToken[]>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "code",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "lang",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Tokenize `code` into a flat list of `{ text, cls }` segments (newlines preserved as\ntheir own `{ text: \"\\n\", cls: \"\" }` tokens). Same scope→class mapping as\n`highlightToHtml`, but returns data instead of HTML — for consumers that reveal code\nprogressively (e.g. `<sema-code-typer>`). Falls back to a single unscoped token on an\nunsupported lang or tokenize failure. The concatenated `text` equals `code` exactly."
         }
       ],
       "exports": [
@@ -4293,9 +6189,33 @@
         },
         {
           "kind": "js",
+          "name": "preloadLanguage",
+          "declaration": {
+            "name": "preloadLanguage",
+            "module": "src/internal/syntax-highlight.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "highlightToHtmlSync",
+          "declaration": {
+            "name": "highlightToHtmlSync",
+            "module": "src/internal/syntax-highlight.ts"
+          }
+        },
+        {
+          "kind": "js",
           "name": "highlightToHtml",
           "declaration": {
             "name": "highlightToHtml",
+            "module": "src/internal/syntax-highlight.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "tokenize",
+          "declaration": {
+            "name": "tokenize",
             "module": "src/internal/syntax-highlight.ts"
           }
         }
