@@ -37,17 +37,17 @@ admin chrome) were dropped — they belong in their app, not the library.
 | Toast | `sema-toast`, `sema-toaster`, `toast()` | (#17) imperative API + singleton region; variants, stacking, auto-dismiss + pause-on-hover, `dismiss`/`dismissAll` |
 | Layout primitives | `sema-container`, `sema-grid`, `sema-sidebar` | (L1–L3) CSS-first, intrinsic responsiveness (no breakpoint props); **`sema-split` renamed → `sema-sidebar`** to avoid confusion with the interactive `sema-splitter` |
 | Tabs | `sema-tabs`, `sema-tab`, `sema-tab-panel` | (#4) panel tabs only — segmented control already shipped as `sema-toggle-group`. Light-DOM ARIA (IDREFs resolve), auto/`manual` activation, `hidden="until-found"` find-in-page, opt-in `hash-sync` deep links |
+| Badge / Tag | `sema-badge` | (#9) variants: neutral/gold/success/error, `pill` shape + `dot` — **absorbs Provider Pill List #23** |
+| Drawer / Slide Panel | `sema-drawer` | (#16) generic & dockable: left/right/top/bottom, focus trap, scroll lock |
+| Spinner / Loading | `sema-spinner` | (#2) minimal inline indicator, `role="status"` live region |
+| Pagination | `sema-pagination` | (#19) |
+| Shortcut / KBD | `sema-kbd` | (#27) single key or `+`-separated combo |
 
 ---
 
 ## 🔜 Next — priority (ordered)
 
-1. Badge / Tag — `sema-badge` (#9; **absorbs Provider Pill List #23** as a pill variant in a wrap)
-2. Drawer / Slide Panel — `sema-drawer` (#16) — **generic & dockable: left / right / top / bottom**, not scoped to the registry admin use-case
-3. Spinner / Loading — `sema-spinner` (#2) — **minimal**: inline indicator (size + `role=status`/`aria-label`). Drop the fullscreen "boot splash" mode — that's app composition, not a primitive.
-4. Data Table — `sema-table` (#18). Larger build; requirements: **sortable headers** (sort-direction indicator + `aria-sort`), **hoverable rows**, **row/cell click events**, **mobile-responsive horizontal overflow** (`overflow-x:auto` + `overscroll-behavior-x: contain` + momentum scroll).
-5. Pagination — `sema-pagination` (#19)
-6. Shortcut / KBD — `sema-kbd` (#27)
+1. Data Table — `sema-table` (#18). Larger build; requirements: **sortable headers** (sort-direction indicator + `aria-sort`), **hoverable rows**, **row/cell click events**, **mobile-responsive horizontal overflow** (`overflow-x:auto` + `overscroll-behavior-x: contain` + momentum scroll).
 
 ---
 
@@ -62,10 +62,8 @@ admin chrome) were dropped — they belong in their app, not the library.
 
 ## ⏸ Deferred fixes (from the 2026-06 quality sweep)
 
-- **Packaging/publish portability** — dist + `.d.ts`, exports map, externalized-Lit build, define guards. Latent behind `private: true`; do as one batch when publishing is planned.
-- **Event-name consistency** — dialog `sema-dialog-open/close` vs popover `sema-open/close`. Breaking; defer to a deliberate release.
-- **CI Node job** — blocked: `brand/ui/` is untracked in git; commit `brand/` first, then add npm ci + playwright + lint + test to ci.yml.
-- **Popover positioning** — top-layer/portal for overflow-clipping containers; JS measure-and-flip. Interim: use `native` selects inside scroll containers.
+- **Event-name consistency** — dialog `sema-dialog-open/close` vs popover `sema-open/close`. **Resolved in 0.2.0**: dialog now emits `sema-open`/`sema-close` (breaking change, see CHANGELOG).
+- **Popover positioning** — top-layer/portal for overflow-clipping containers; JS measure-and-flip. **Resolved in 0.2.0**: `<sema-popover>`'s panel is `position: fixed`, measured against the trigger on open (with vertical flip near a viewport edge), so it escapes `overflow`-clipping ancestors.
 - **Test `waitFor` consolidation** — five duplicated helpers → `tests/_util.ts`; replace `setTimeout(150)` negative assertions in sema-code tests with a `highlightComplete` signal.
 - Menu type-ahead (APG SHOULD) · sema-toggle `selected`-is-group-managed JSDoc note.
 - Small website primitives: `sema-cta-group` (#43) · `sema-diagram-frame` (#46) · `sema-status-cell` (#48) · `sema-arrow-link` (#49, → Button variant) · `sema-text-divider` (#56).

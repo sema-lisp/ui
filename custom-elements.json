@@ -1155,7 +1155,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "",
+          "description": "`<sema-dialog>` — a modal dialog with a focus trap, backdrop click, Escape\nclose, scroll lock, and header/body/footer slots.\n\nEmits `sema-open` / `sema-close` (aligned with `<sema-popover>`).",
           "name": "SemaDialog",
           "members": [
             {
@@ -1233,13 +1233,13 @@
           ],
           "events": [
             {
-              "name": "sema-dialog-open",
+              "name": "sema-open",
               "type": {
                 "text": "CustomEvent"
               }
             },
             {
-              "name": "sema-dialog-close",
+              "name": "sema-close",
               "type": {
                 "text": "CustomEvent"
               }
@@ -1486,7 +1486,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "`<sema-editor>` — the single editable, syntax-highlighting code editor for the\nSema ecosystem (notebook cells, the playground, anywhere code is edited).\n\nA transparent `<textarea>` (real caret / selection / IME / undo) sits over an\n`aria-hidden` overlay of per-line `<div>`s painted by the **one** shared Shiki\nhighlighter — so it renders identically to `<sema-code>` and works for every\nlanguage, not just Sema. Highlighting is synchronous after a one-time async\ngrammar warmup; until warm it shows escaped plain text and upgrades in place.\n\n## Gutter (line numbers + breakpoints + debug line)\nOpt in with `line-numbers`. The gutter is a *mechanism*: it renders the markers it\nis told about and reports clicks — it owns no policy. Consumers drive it:\n- `.breakpoints = [3, 7]` — lines that show a breakpoint dot.\n- `current-line=\"5\"` — the active/debug line (highlighted in gutter + editor).\n- listen for `gutter-click` (`detail: { line }`) to toggle/snap breakpoints, etc.\n\nEvents: `input` and `change` as `CustomEvent<{ value }>`; native `keydown` bubbles\n(composed) so hosts can bind Shift+Enter etc.",
+          "description": "`<sema-editor>` — the single editable, syntax-highlighting code editor for the\nSema ecosystem (notebook cells, the playground, anywhere code is edited).\n\nA transparent `<textarea>` (real caret / selection / IME / undo) sits over an\n`aria-hidden` overlay of per-line `<div>`s painted by the **one** shared Shiki\nhighlighter — so it renders identically to `<sema-code>` and works for every\nlanguage, not just Sema. Highlighting is synchronous after a one-time async\ngrammar warmup; until warm it shows escaped plain text and upgrades in place.\n\n## Gutter (line numbers + breakpoints + debug line)\nOpt in with `line-numbers`. The gutter is a *mechanism*: it renders the markers it\nis told about and reports clicks — it owns no policy. Consumers drive it:\n- `.breakpoints = [3, 7]` — lines that show a breakpoint dot.\n- `current-line=\"5\"` — the active/debug line (highlighted in gutter + editor).\n- listen for `gutter-click` (`detail: { line }`) to toggle/snap breakpoints, etc.\n\nEvents: `input` and `change` as `CustomEvent<{ value }>`. The inner textarea's\nnative `keydown` bubbles composed to the host — this is part of the public API,\nso hosts bind Shift+Enter, Escape, Cmd+S, etc. directly on the host element. The\ncomponent itself intercepts **only Tab** (`preventDefault()` + indent/dedent) and\nnever calls `stopPropagation()`, on Tab or any other key.",
           "name": "SemaEditor",
           "members": [
             {
@@ -1632,6 +1632,11 @@
               "kind": "method",
               "name": "focus",
               "description": "Focus delegates to the inner textarea (the host itself isn't focusable)."
+            },
+            {
+              "kind": "method",
+              "name": "blur",
+              "description": "Blur delegates to the inner textarea."
             },
             {
               "kind": "method",
@@ -2155,6 +2160,15 @@
             },
             {
               "kind": "field",
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "testid"
+            },
+            {
+              "kind": "field",
               "name": "_internals",
               "privacy": "private"
             },
@@ -2262,6 +2276,14 @@
               },
               "description": "Maximum number of characters the control accepts (omit for no limit).",
               "fieldName": "maxlength"
+            },
+            {
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "testid"
             }
           ],
           "superclass": {
@@ -3061,7 +3083,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "`<sema-popover>` — a generic anchored popover.\n\nPut the trigger in `slot=\"trigger\"` and the floating content in the default slot.\nOpens on trigger click (or hover via `open-on=\"hover\"`).\n\n**Focus & keyboard (WAI-ARIA menu-button pattern):** opening moves focus into the\npanel (a child `<sema-menu>` focuses its first item); Escape, outside-click, Tab, and\nfocus leaving the popover all close it; Escape/Tab return focus to the trigger. The\ntrigger gets `aria-haspopup` + `aria-expanded`. Add the **`modal`** attribute for\ndialog-like content that should hard-trap Tab instead of closing on Tab/focus-out.\n\nEmits `sema-open` / `sema-close`. A child `<sema-menu>`'s `sema-select` auto-closes it.",
+          "description": "`<sema-popover>` — a generic anchored popover.\n\nPut the trigger in `slot=\"trigger\"` and the floating content in the default slot.\nOpens on trigger click (or hover via `open-on=\"hover\"`).\n\n**Focus & keyboard (WAI-ARIA menu-button pattern):** opening moves focus into the\npanel (a child `<sema-menu>` focuses its first item); Escape, outside-click, Tab, and\nfocus leaving the popover all close it; Escape/Tab return focus to the trigger. The\ntrigger gets `aria-haspopup` + `aria-expanded`. Add the **`modal`** attribute for\ndialog-like content that should hard-trap Tab instead of closing on Tab/focus-out.\n\n**Positioning:** the panel is `position: fixed`, so it always escapes `overflow`-\nclipping ancestors instead of being clipped by them. On open it measures the\ntrigger with `getBoundingClientRect()` and sets viewport-relative coordinates,\nflipping vertically (`bottom-*` ↔ `top-*`) when the preferred side would cross the\nviewport edge. Because the fixed coordinates go stale if the page scrolls or\nresizes, the popover closes on either while open (scrolling *inside* the popover's\nown light-DOM content is exempt, so a scrollable slotted panel doesn't self-close).\n\nEmits `sema-open` / `sema-close`. A child `<sema-menu>`'s `sema-select` auto-closes it.",
           "name": "SemaPopover",
           "members": [
             {
@@ -3137,12 +3159,23 @@
             },
             {
               "kind": "field",
+              "name": "_onViewportChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
               "name": "_trigger",
               "type": {
                 "text": "HTMLElement | null"
               },
               "privacy": "private",
               "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_reposition",
+              "privacy": "private",
+              "description": "Measure the trigger and place the (fixed) panel at viewport-relative\ncoordinates, flipping vertically when the preferred side doesn't fit but the\nopposite side does. Called once the panel has laid out (post-`updateComplete`),\nsince it needs the panel's real dimensions."
             },
             {
               "kind": "method",
@@ -4808,6 +4841,15 @@
             },
             {
               "kind": "field",
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "testid"
+            },
+            {
+              "kind": "field",
               "name": "_internals",
               "privacy": "private"
             },
@@ -4934,6 +4976,14 @@
               "default": "false",
               "description": "Grow to fit content (CSS field-sizing, with a scrollHeight JS fallback).",
               "fieldName": "autosize"
+            },
+            {
+              "name": "testid",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "testid"
             }
           ],
           "superclass": {

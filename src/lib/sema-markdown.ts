@@ -118,7 +118,7 @@ export class SemaMarkdown extends SemaElement {
             .then((code) => {
               parts[idx] = `<pre><code>${code}</code></pre>`;
             })
-            // A lazily-loaded grammar chunk may be absent (e.g. the notebook
+            // A lazily-loaded grammar chunk may be absent (e.g. a consumer that
             // vendors only the main bundle). Degrade this one fence to marked's
             // default output instead of failing the whole document.
             .catch(() => {}),
