@@ -45,8 +45,6 @@ declare global {
     'sema-resize': CustomEvent<SemaResizeEventDetail>;
     'sema-open': Event;
     'sema-close': Event;
-    'sema-dialog-open': Event;
-    'sema-dialog-close': Event;
     'sema-drawer-open': Event;
     'sema-drawer-close': Event;
     'sema-dismiss': Event;

@@ -3,6 +3,12 @@ import { property } from 'lit/decorators.js';
 import { SemaElement } from '../internal/sema-element.js';
 import { FocusTrapController } from '../internal/controllers/focus-trap.js';
 
+/**
+ * `<sema-dialog>` — a modal dialog with a focus trap, backdrop click, Escape
+ * close, scroll lock, and header/body/footer slots.
+ *
+ * Emits `sema-open` / `sema-close` (aligned with `<sema-popover>`).
+ */
 export class SemaDialog extends SemaElement {
   static styles = [
     SemaElement.base,
@@ -10,8 +16,15 @@ export class SemaDialog extends SemaElement {
       :host {
         display: none;
       }
+      /* Give the open host a real box matching what is visually painted: its
+         only child (.backdrop) is position:fixed and out of flow, so without
+         this the host computes 0x0 and visibility checks (a11y tools,
+         Playwright toBeVisible) report the shown dialog as hidden. */
       :host([open]) {
         display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 500;
       }
 
       .backdrop {
@@ -130,10 +143,10 @@ export class SemaDialog extends SemaElement {
     if (changed.has('open')) {
       if (this.open) {
         document.addEventListener('keydown', this._onDocKeydown);
-        this.dispatchEvent(new CustomEvent('sema-dialog-open', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('sema-open', { bubbles: true, composed: true }));
       } else {
         document.removeEventListener('keydown', this._onDocKeydown);
-        this.dispatchEvent(new CustomEvent('sema-dialog-close', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('sema-close', { bubbles: true, composed: true }));
       }
     }
   }

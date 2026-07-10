@@ -25,6 +25,15 @@ describe('SemaDialog', () => {
     expect(el.shadowRoot!.querySelector('.dialog')).toBeTruthy()
   })
 
+  it('gives the open host a real box (visibility checks must not report it hidden)', async () => {
+    document.body.innerHTML = '<sema-dialog id="d" open label="Test"><p>Content</p></sema-dialog>'
+    const el = document.querySelector('#d') as SemaDialog
+    await el.updateComplete
+    const rect = el.getBoundingClientRect()
+    expect(rect.width).toBeGreaterThan(0)
+    expect(rect.height).toBeGreaterThan(0)
+  })
+
   it('has role="dialog" and aria-modal', async () => {
     document.body.innerHTML = '<sema-dialog id="d" open label="Test"><p>Content</p></sema-dialog>'
     const el = document.querySelector('#d') as SemaDialog
@@ -67,6 +76,22 @@ describe('SemaDialog', () => {
     el.close()
     await el.updateComplete
     expect(el.open).toBe(false)
+  })
+
+  it('emits sema-open / sema-close', async () => {
+    document.body.innerHTML = '<sema-dialog id="d" label="Test"><p>Content</p></sema-dialog>'
+    const el = document.querySelector('#d') as SemaDialog
+    await el.updateComplete
+    let opened = 0
+    let closed = 0
+    el.addEventListener('sema-open', () => opened++)
+    el.addEventListener('sema-close', () => closed++)
+    el.show()
+    await el.updateComplete
+    el.close()
+    await el.updateComplete
+    expect(opened).toBe(1)
+    expect(closed).toBe(1)
   })
 
   it('locks body scroll when open and unlocks on close', async () => {
