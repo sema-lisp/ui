@@ -143,6 +143,17 @@ export class SemaButton extends SemaElement {
         outline-offset: 3px;
         border-radius: 3px;
       }
+      /* run + danger: a destructive/stop state, so it must read as danger at rest —
+         unlike the debug/action danger modifier below, which only tints on hover. */
+      :host([variant="run"][danger]) .button {
+        background: transparent;
+        border: 1px solid var(--error, #c85555);
+        color: var(--error, #c85555);
+      }
+      :host([variant="run"][danger]) .button:hover:not(:disabled) {
+        background: var(--error-bg, rgba(200, 85, 85, 0.06));
+        opacity: 1;
+      }
 
       /* shortcut badge inside run */
       .shortcut {

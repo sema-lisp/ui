@@ -56,6 +56,7 @@ export class SemaTextarea extends SemaElement {
   @property({ type: Number }) maxlength?: number;
   /** Grow to fit content (CSS field-sizing, with a scrollHeight JS fallback). */
   @property({ type: Boolean, reflect: true }) autosize = false;
+  @property() testid = '';
 
   private _internals = this.attachInternals();
 
@@ -105,6 +106,7 @@ export class SemaTextarea extends SemaElement {
     return html`<textarea
       class="control sema-scroll"
       part="control"
+      data-testid=${ifDefined(this.testid || undefined)}
       .value=${live(this.value)}
       rows=${this.rows}
       placeholder=${this.placeholder}

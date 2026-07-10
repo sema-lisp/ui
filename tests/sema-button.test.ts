@@ -64,6 +64,19 @@ describe('SemaButton', () => {
     expect(el.hasAttribute('danger')).toBe(true)
   })
 
+  it('run + danger reflects the attribute and looks danger at rest (not just on hover)', async () => {
+    document.body.innerHTML =
+      '<sema-button variant="run" danger>Stop</sema-button><sema-button variant="run">Run</sema-button>'
+    const [dangerEl, plainEl] = document.querySelectorAll('sema-button')
+    await dangerEl.updateComplete
+    await plainEl.updateComplete
+    expect(dangerEl.hasAttribute('danger')).toBe(true)
+    const dangerBtn = dangerEl.shadowRoot!.querySelector('button')!
+    const plainBtn = plainEl.shadowRoot!.querySelector('button')!
+    expect(getComputedStyle(dangerBtn).color).not.toBe(getComputedStyle(plainBtn).color)
+    expect(parseFloat(getComputedStyle(dangerBtn).borderTopWidth)).toBeGreaterThan(0)
+  })
+
   it('defaults to primary variant when none specified', async () => {
     document.body.innerHTML = '<sema-button>Default</sema-button>'
     const el = document.querySelector('sema-button')!

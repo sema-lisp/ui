@@ -85,6 +85,14 @@ describe('SemaInput', () => {
     expect(input.readOnly).toBe(true)
     expect(input.getAttribute('maxlength')).toBe('5')
   })
+
+  it('forwards the testid onto the inner input', async () => {
+    document.body.innerHTML = `<sema-input testid="pkg-input"></sema-input>`
+    const el = document.querySelector('sema-input') as SemaInput
+    await el.updateComplete
+    const input = el.shadowRoot!.querySelector('input')!
+    expect(input.getAttribute('data-testid')).toBe('pkg-input')
+  })
 })
 
 describe('SemaTextarea', () => {
@@ -116,6 +124,14 @@ describe('SemaTextarea', () => {
     el.value = Array.from({ length: 10 }, (_, i) => `line ${i + 1}`).join('\n')
     await el.updateComplete
     expect(ta.getBoundingClientRect().height).toBeGreaterThan(before)
+  })
+
+  it('forwards the testid onto the inner textarea', async () => {
+    document.body.innerHTML = `<sema-textarea testid="notes"></sema-textarea>`
+    const el = document.querySelector('sema-textarea') as SemaTextarea
+    await el.updateComplete
+    const ta = el.shadowRoot!.querySelector('textarea')!
+    expect(ta.getAttribute('data-testid')).toBe('notes')
   })
 })
 

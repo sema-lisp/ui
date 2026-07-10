@@ -38,6 +38,7 @@ export class SemaInput extends SemaElement {
   @property({ type: Boolean, reflect: true }) readonly = false;
   /** Maximum number of characters the control accepts (omit for no limit). */
   @property({ type: Number }) maxlength?: number;
+  @property() testid = '';
 
   private _internals = this.attachInternals();
 
@@ -79,6 +80,7 @@ export class SemaInput extends SemaElement {
     return html`<input
       class="control"
       part="control"
+      data-testid=${ifDefined(this.testid || undefined)}
       .value=${live(this.value)}
       type=${this.type}
       placeholder=${this.placeholder}
