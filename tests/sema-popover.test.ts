@@ -176,6 +176,79 @@ describe('SemaPopover', () => {
     expect(trigger.getAttribute('aria-expanded')).toBe('false')
   })
 
+  it('escapes an overflow:hidden ancestor — the panel is not visually clipped', async () => {
+    document.body.innerHTML = `
+      <div id="clipper" style="overflow: hidden; width: 220px; height: 40px; position: relative;">
+        ${MENU}
+      </div>`
+    const el = pop()
+    el.show()
+    await el.updateComplete
+    const p = panel(el)
+    expect(getComputedStyle(p).position).toBe('fixed')
+    const clipperBottom = (document.querySelector('#clipper') as HTMLElement).getBoundingClientRect().bottom
+    const r = p.getBoundingClientRect()
+    expect(r.bottom).toBeGreaterThan(clipperBottom) // extends past the 40px-tall ancestor
+    // A point in the panel's own padding, below the ancestor's clip boundary, still
+    // hit-tests into the popover — proof the ancestor's overflow:hidden isn't
+    // painting over it. document.elementFromPoint retargets shadow content to the
+    // host; pierce one level with the shadow root's own elementFromPoint to confirm
+    // it's really the panel (not the clipper's background) that's painted there.
+    expect(document.elementFromPoint(r.left + 2, r.bottom - 2)).toBe(el)
+    expect(el.shadowRoot!.elementFromPoint(r.left + 2, r.bottom - 2)).toBe(p)
+  })
+
+  it('flips to render above the trigger when pinned near the bottom of the viewport', async () => {
+    document.body.innerHTML = `<div style="position: fixed; left: 24px; bottom: 8px;">${MENU}</div>`
+    const el = pop() // default placement is bottom-start
+    el.show()
+    await el.updateComplete
+    const trigger = el.querySelector('[slot="trigger"]') as HTMLElement
+    const triggerRect = trigger.getBoundingClientRect()
+    const panelRect = panel(el).getBoundingClientRect()
+    // rendered above the trigger, not below (which would overflow the viewport)
+    expect(panelRect.bottom).toBeLessThanOrEqual(triggerRect.top + 1)
+  })
+
+  it('closes when the page scrolls (fixed coordinates would otherwise go stale)', async () => {
+    document.body.innerHTML = MENU
+    const el = pop()
+    el.show()
+    await el.updateComplete
+    expect(el.open).toBe(true)
+    window.dispatchEvent(new Event('scroll'))
+    await el.updateComplete
+    expect(el.open).toBe(false)
+  })
+
+  it('closes when the window resizes', async () => {
+    document.body.innerHTML = MENU
+    const el = pop()
+    el.show()
+    await el.updateComplete
+    expect(el.open).toBe(true)
+    window.dispatchEvent(new Event('resize'))
+    await el.updateComplete
+    expect(el.open).toBe(false)
+  })
+
+  it('does not close when the scroll originates inside its own slotted content', async () => {
+    document.body.innerHTML = `
+      <sema-popover>
+        <button slot="trigger">Open</button>
+        <div id="scrollme" style="max-height: 40px; overflow-y: auto;">
+          <div style="height: 200px;">tall content</div>
+        </div>
+      </sema-popover>`
+    const el = pop()
+    el.show()
+    await el.updateComplete
+    expect(el.open).toBe(true)
+    document.querySelector('#scrollme')!.dispatchEvent(new Event('scroll'))
+    await el.updateComplete
+    expect(el.open).toBe(true)
+  })
+
   it('modal popover does not close on Tab — it wraps focus inside the panel', async () => {
     document.body.innerHTML = `
       <sema-popover modal>

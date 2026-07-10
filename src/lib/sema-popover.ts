@@ -23,6 +23,14 @@ export type PopoverPlacement =
  * trigger gets `aria-haspopup` + `aria-expanded`. Add the **`modal`** attribute for
  * dialog-like content that should hard-trap Tab instead of closing on Tab/focus-out.
  *
+ * **Positioning:** the panel is `position: fixed`, so it always escapes `overflow`-
+ * clipping ancestors instead of being clipped by them. On open it measures the
+ * trigger with `getBoundingClientRect()` and sets viewport-relative coordinates,
+ * flipping vertically (`bottom-*` ↔ `top-*`) when the preferred side would cross the
+ * viewport edge. Because the fixed coordinates go stale if the page scrolls or
+ * resizes, the popover closes on either while open (scrolling *inside* the popover's
+ * own light-DOM content is exempt, so a scrollable slotted panel doesn't self-close).
+ *
  * Emits `sema-open` / `sema-close`. A child `<sema-menu>`'s `sema-select` auto-closes it.
  */
 export class SemaPopover extends SemaElement {
@@ -33,8 +41,14 @@ export class SemaPopover extends SemaElement {
         display: inline-block;
         position: relative;
       }
+      /* Fixed (not absolute) so the panel escapes overflow-clipping ancestors — a
+         plain overflow:hidden/auto container does not clip a fixed descendant.
+         top/left are set inline by _reposition() (measured from the trigger's
+         getBoundingClientRect() once the panel has laid out); left unset here,
+         the panel sits at its default fixed origin only for the single
+         pre-measurement frame right after open flips true. */
       .panel {
-        position: absolute;
+        position: fixed;
         z-index: 300;
         min-width: max-content;
         background: var(--bg-elevated, #141414);
@@ -45,30 +59,6 @@ export class SemaPopover extends SemaElement {
       }
       .panel[hidden] {
         display: none;
-      }
-      :host([placement='bottom-start']) .panel {
-        top: calc(100% + 4px);
-        left: 0;
-      }
-      :host([placement='bottom-end']) .panel {
-        top: calc(100% + 4px);
-        right: 0;
-      }
-      :host([placement='top-start']) .panel {
-        bottom: calc(100% + 4px);
-        left: 0;
-      }
-      :host([placement='top-end']) .panel {
-        bottom: calc(100% + 4px);
-        right: 0;
-      }
-      :host([placement='left']) .panel {
-        right: calc(100% + 4px);
-        top: 0;
-      }
-      :host([placement='right']) .panel {
-        left: calc(100% + 4px);
-        top: 0;
       }
     `,
   ];
@@ -95,9 +85,20 @@ export class SemaPopover extends SemaElement {
     if (!e.composedPath().includes(this)) this.hide(false);
   };
 
+  // The fixed coordinates computed in _reposition() are only valid until the page's
+  // scroll offset or viewport size changes, so close rather than track them live.
+  // A scroll bubbling up from the popover's own light-DOM content (composedPath
+  // includes `this`) is exempt so a scrollable slotted panel doesn't self-close.
+  private _onViewportChange = (e: Event) => {
+    if (e.composedPath().includes(this)) return;
+    this.hide(false);
+  };
+
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('pointerdown', this._onDocPointer, true);
+    window.removeEventListener('scroll', this._onViewportChange, true);
+    window.removeEventListener('resize', this._onViewportChange);
     // Don't leave a reconnected popover stuck-open with a stale aria-expanded.
     if (this.open) {
       this._triggerEl?.setAttribute('aria-expanded', 'false');
@@ -108,6 +109,48 @@ export class SemaPopover extends SemaElement {
 
   private get _trigger(): HTMLElement | null {
     return this.querySelector<HTMLElement>('[slot="trigger"]');
+  }
+
+  /** Measure the trigger and place the (fixed) panel at viewport-relative
+   * coordinates, flipping vertically when the preferred side doesn't fit but the
+   * opposite side does. Called once the panel has laid out (post-`updateComplete`),
+   * since it needs the panel's real dimensions. */
+  private _reposition() {
+    const trigger = this._triggerEl;
+    const panel = this._panel;
+    if (!trigger || !panel) return;
+    const gap = 4;
+    const tr = trigger.getBoundingClientRect();
+    const pr = panel.getBoundingClientRect();
+
+    const preferAbove = this.placement.startsWith('top');
+    const fitsAbove = tr.top - gap - pr.height >= 0;
+    const fitsBelow = tr.bottom + gap + pr.height <= window.innerHeight;
+    let renderAbove = preferAbove;
+    if (preferAbove && !fitsAbove && fitsBelow) renderAbove = false;
+    if (!preferAbove && !fitsBelow && fitsAbove) renderAbove = true;
+
+    let top: number;
+    let left: number;
+    switch (this.placement) {
+      case 'left':
+        top = tr.top;
+        left = tr.left - gap - pr.width;
+        break;
+      case 'right':
+        top = tr.top;
+        left = tr.right + gap;
+        break;
+      default: // bottom-start, bottom-end, top-start, top-end
+        top = renderAbove ? tr.top - gap - pr.height : tr.bottom + gap;
+        left = this.placement.endsWith('end') ? tr.right - pr.width : tr.left;
+    }
+
+    // Clamp X so an edge-adjacent trigger can't push the panel off-viewport.
+    left = Math.max(gap, Math.min(left, window.innerWidth - pr.width - gap));
+
+    panel.style.top = `${top}px`;
+    panel.style.left = `${left}px`;
   }
 
   show() {
@@ -123,10 +166,14 @@ export class SemaPopover extends SemaElement {
       );
     }
     document.addEventListener('pointerdown', this._onDocPointer, true);
+    window.addEventListener('scroll', this._onViewportChange, true);
+    window.addEventListener('resize', this._onViewportChange);
     this.dispatchEvent(new CustomEvent('sema-open', { bubbles: true, composed: true }));
-    // Move focus into the panel (a menu focuses its first item).
+    // Position the panel and move focus into it (a menu focuses its first item) —
+    // both need the post-render panel, so they run after updateComplete.
     this.updateComplete.then(() => {
       if (!this.open) return;
+      this._reposition();
       const menu = this.querySelector('sema-menu') as (HTMLElement & { focusFirst?: () => void }) | null;
       if (menu?.focusFirst) menu.focusFirst();
       // getFocusableElements walks shadow roots + slots, so it finds slotted content
@@ -140,6 +187,8 @@ export class SemaPopover extends SemaElement {
     if (!this.open) return;
     this.open = false;
     document.removeEventListener('pointerdown', this._onDocPointer, true);
+    window.removeEventListener('scroll', this._onViewportChange, true);
+    window.removeEventListener('resize', this._onViewportChange);
     // Resolve the live trigger (it may have been re-slotted) and fall back to the cached ref.
     const trigger = this._trigger ?? this._triggerEl;
     trigger?.setAttribute('aria-expanded', 'false');
