@@ -117,6 +117,29 @@ describe('sema-editor', () => {
     expect(spy).toHaveBeenCalled()
   })
 
+  it('does not stopPropagation on Tab either — the host still observes it', async () => {
+    const el = await mount()
+    const spy = vi.fn()
+    el.addEventListener('keydown', spy)
+    ta(el).dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, composed: true, cancelable: true }),
+    )
+    expect(spy).toHaveBeenCalled()
+  })
+
+  it('blur() delegates to the inner textarea', async () => {
+    const el = await mount()
+    ta(el).focus()
+    expect(el.shadowRoot!.activeElement).toBe(ta(el))
+    el.blur()
+    expect(el.shadowRoot!.activeElement).toBeNull()
+  })
+
+  it('honors the native autofocus attribute by focusing the inner textarea', async () => {
+    const el = await mount('autofocus')
+    expect(el.shadowRoot!.activeElement).toBe(ta(el))
+  })
+
   // ── Gutter / breakpoints / current-line ──
 
   it('renders a line-number gutter with one entry per line', async () => {
@@ -135,6 +158,10 @@ describe('sema-editor', () => {
     expect(gl[1].classList.contains('bp')).toBe(true) // line 2 breakpoint
     expect(gl[0].classList.contains('cur')).toBe(true) // line 1 current
     expect(gl[2].classList.contains('bp')).toBe(false)
+    // State is also exposed as part tokens — the public hook for styling and tests.
+    expect(gl[1].getAttribute('part')).toBe('gutter-line breakpoint')
+    expect(gl[0].getAttribute('part')).toBe('gutter-line current')
+    expect(gl[2].getAttribute('part')).toBe('gutter-line')
   })
 
   it('emits gutter-click with the 1-based line when a gutter line is clicked', async () => {

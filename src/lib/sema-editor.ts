@@ -29,8 +29,11 @@ const SUPPORTS_FIELD_SIZING =
  * - `current-line="5"` — the active/debug line (highlighted in gutter + editor).
  * - listen for `gutter-click` (`detail: { line }`) to toggle/snap breakpoints, etc.
  *
- * Events: `input` and `change` as `CustomEvent<{ value }>`; native `keydown` bubbles
- * (composed) so hosts can bind Shift+Enter etc.
+ * Events: `input` and `change` as `CustomEvent<{ value }>`. The inner textarea's
+ * native `keydown` bubbles composed to the host — this is part of the public API,
+ * so hosts bind Shift+Enter, Escape, Cmd+S, etc. directly on the host element. The
+ * component itself intercepts **only Tab** (`preventDefault()` + indent/dedent) and
+ * never calls `stopPropagation()`, on Tab or any other key.
  */
 export class SemaEditor extends SemaElement {
   static styles = [
@@ -219,6 +222,9 @@ export class SemaEditor extends SemaElement {
     const t = this._ta;
     if (t) this._undo = new TextareaUndo(t, { onChange: () => this._onInput() });
     if (this.autosize && !SUPPORTS_FIELD_SIZING) this._grow();
+    // Lit can't declare a Lit `@property` named `autofocus` (it collides with the
+    // HTMLElement IDL attribute), so honor it by reading the attribute directly.
+    if (this.hasAttribute('autofocus')) this.focus();
   }
 
   updated(changed: Map<string, unknown>) {
@@ -233,6 +239,11 @@ export class SemaEditor extends SemaElement {
   /** Focus delegates to the inner textarea (the host itself isn't focusable). */
   focus() {
     this._ta?.focus();
+  }
+
+  /** Blur delegates to the inner textarea. */
+  blur() {
+    this._ta?.blur();
   }
 
   /** Scroll so 1-based `line` is vertically centered (e.g. a debugger's current line). */
@@ -362,7 +373,7 @@ export class SemaEditor extends SemaElement {
                 const n = i + 1;
                 return html`<div
                   class="gl ${bp.has(n) ? 'bp' : ''} ${n === cur ? 'cur' : ''}"
-                  part="gutter-line"
+                  part="gutter-line${bp.has(n) ? ' breakpoint' : ''}${n === cur ? ' current' : ''}"
                   role="button"
                   tabindex="0"
                   aria-label=${`Toggle breakpoint on line ${n}`}
