@@ -17,6 +17,19 @@ describe('highlightToHtmlSync', () => {
     expect(out).toMatch(/<span class="tok-\w+">define<\/span>/)
   })
 
+  it('classifies workflow approval and policy forms', async () => {
+    await preloadLanguage('sema')
+    const out = highlightToHtmlSync(
+      '(defpolicy safe {})\n(approval :ship {})\n(policy/without "test" #t)\n(workflow/approval :ship {})\n(tool/policy-subjects publish)',
+      'sema',
+    )
+    expect(out).toContain('<span class="tok-keyword">defpolicy</span>')
+    expect(out).toContain('<span class="tok-builtin">approval</span>')
+    expect(out).toContain('<span class="tok-builtin">policy/without</span>')
+    expect(out).toContain('<span class="tok-builtin">workflow/approval</span>')
+    expect(out).toContain('<span class="tok-builtin">tool/policy-subjects</span>')
+  })
+
   it('supports non-sema languages too (json), unlike the old sema-only tokenizer', async () => {
     await preloadLanguage('json')
     const out = highlightToHtmlSync('{"a": 1}', 'json')
