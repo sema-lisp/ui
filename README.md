@@ -1,4 +1,17 @@
+<div align="center">
+
+<img src="https://sema-lang.com/logo.svg" alt="Sema" height="64">
+
 # @sema-lang/ui
+
+**Web Components for the [Sema](https://sema-lang.com) design system** — a Lisp with first-class LLM primitives.
+
+[![CI](https://img.shields.io/github/actions/workflow/status/sema-lisp/ui/ci.yml?branch=main&label=CI&logo=github)](https://github.com/sema-lisp/ui/actions)
+[![npm](https://img.shields.io/npm/v/@sema-lang/ui?color=c8a855&logo=npm)](https://www.npmjs.com/package/@sema-lang/ui)
+[![License](https://img.shields.io/github/license/sema-lisp/ui?color=c8a855)](LICENSE)
+[![Website](https://img.shields.io/badge/website-sema--lang.com-c8a855)](https://sema-lang.com)
+
+</div>
 
 Lit-based Web Components for the Sema design system. Framework-agnostic, consumes DESIGN.md tokens via CSS custom properties.
 
