@@ -144,5 +144,20 @@ describe('SemaSplitter', () => {
     document.dispatchEvent(new MouseEvent('mouseup'))
     expect(ended).toBe(true)
     expect(document.body.style.cursor).toBe('')
+    expect(document.body.style.userSelect).toBe('')
+  })
+
+  it('restores text selection when a touch drag is cancelled', () => {
+    document.body.innerHTML = '<sema-splitter direction="vertical"></sema-splitter>'
+    const el = document.querySelector('sema-splitter')!
+    const start = new Event('touchstart', { bubbles: true, cancelable: true })
+    Object.defineProperty(start, 'touches', {
+      value: [{ clientX: 10, clientY: 10 }],
+    })
+
+    el.dispatchEvent(start)
+    expect(document.body.style.userSelect).toBe('none')
+    document.dispatchEvent(new Event('touchcancel'))
+    expect(document.body.style.userSelect).toBe('')
   })
 })

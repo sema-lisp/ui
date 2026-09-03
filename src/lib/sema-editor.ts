@@ -155,6 +155,9 @@ export class SemaEditor extends SemaElement {
         caret-color: var(--text-primary, #d8d0c0);
         outline: none;
         overflow: auto;
+        user-select: text;
+        -webkit-user-select: text;
+        -webkit-touch-callout: default;
       }
       :host([autosize]) textarea {
         /* Grow with content via CSS where supported (no measure-timing race);

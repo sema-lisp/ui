@@ -34,6 +34,13 @@ describe('sema-editor', () => {
     expect(hl(el).textContent).toContain('(define x 1)')
   })
 
+  it('keeps native text selection enabled', async () => {
+    const el = await mount()
+    const styles = getComputedStyle(ta(el))
+    expect(styles.userSelect).toBe('text')
+    expect(styles.webkitUserSelect).toBe('text')
+  })
+
   it('highlights via the shared Shiki grammar once warm (same as sema-code)', async () => {
     const el = await mount()
     el.value = '(define x 1)'
