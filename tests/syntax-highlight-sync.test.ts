@@ -30,6 +30,19 @@ describe('highlightToHtmlSync', () => {
     expect(out).toContain('<span class="tok-builtin">tool/policy-subjects</span>')
   })
 
+  it('classifies complete raw regex literals and regex builtins', async () => {
+    await preloadLanguage('sema')
+    const out = highlightToHtmlSync(
+      '(regex/match? #"\\d+" text)\n(regex/match #"\\\"[^\\\"]+\\\"" text)',
+      'sema',
+    )
+    const normalized = out.replaceAll('</span><span class="tok-string">', '')
+    expect(out).toContain('<span class="tok-builtin">regex/match?</span>')
+    expect(out).toContain('<span class="tok-builtin">regex/match</span>')
+    expect(normalized).toContain('<span class="tok-string">#"\\d+"</span>')
+    expect(normalized).toContain('<span class="tok-string">#"\\"[^\\"]+\\""</span>')
+  })
+
   it('supports non-sema languages too (json), unlike the old sema-only tokenizer', async () => {
     await preloadLanguage('json')
     const out = highlightToHtmlSync('{"a": 1}', 'json')
