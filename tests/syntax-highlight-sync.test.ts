@@ -25,7 +25,7 @@ describe('highlightToHtmlSync', () => {
     )
     expect(out).toContain('<span class="tok-keyword">defpolicy</span>')
     expect(out).toContain('<span class="tok-builtin">approval</span>')
-    expect(out).toContain('<span class="tok-builtin">policy/without</span>')
+    expect(out).toContain('<span class="tok-keyword">policy/without</span>')
     expect(out).toContain('<span class="tok-builtin">workflow/approval</span>')
     expect(out).toContain('<span class="tok-builtin">tool/policy-subjects</span>')
   })
